@@ -2,12 +2,12 @@ const SORT = ["relevance", "new", "top", "comments"]
 const TIME = ["all", "day", "week", "month", "year"]
 
 browser.omnibox.setDefaultSuggestion({
-  description: `Search a specific subreddit for a query`
+  description: `Search a specific subreddit for a query | e.g. "sub python test time:week" searches r/python for "test" for posts in the last week`
 })
 
 browser.omnibox.onInputChanged.addListener((input, suggest) => {
-  let s = { content: input, description: "A test of the suggestions" }
-  suggest([ s ])
+  let suggestion = BuildSuggestion(input)
+  browser.omnibox.setDefaultSuggestion(suggestion)
 })
 
 browser.omnibox.onInputEntered.addListener((text, disposition) => {
@@ -25,18 +25,46 @@ browser.omnibox.onInputEntered.addListener((text, disposition) => {
   }
 })
 
-const BuildURL = (rawText) => {
-  let args = rawText.split(" ")
-  let subreddit = args.shift()
-  let params = args.filter(token => token.includes(':'))
+const parseRawText = (rawText) => {
+  const args = rawText.split(" ")
+  const subreddit = args.shift()
+  const params = args.filter(token => token.includes(':'))
                    .map(param => param.split(':'))
                    .reduce((obj, param) => { // reduce to single object
                       obj[param[0]] = param[1]
                       return obj
                     }, {})
-  console.log(params)
-  let query = args.filter(arg => !arg.includes(':')).join('+')
-  let url = `https://www.reddit.com/r/${subreddit}/search?q=${query}&restrict_sr=on`
+  const query = args.filter(arg => !arg.includes(':'))
+  return { subreddit, query, params }
+}
+
+const BuildSuggestion = (rawText) => {
+  let description = ""
+  let { subreddit, query, params } = parseRawText(rawText)
+  query = query.join(' ')
+
+  if (subreddit && !query) {
+    description += `Go to r/${subreddit}`
+  }
+
+  if (query) {
+    description += `Search r/${subreddit} for "${query}"`
+  }
+
+  if (params.time) {
+    description += ` within the last ${params.time}`
+  }
+
+  if (params.sort) {
+    description += ` and sort by ${params.sort}`
+  }
+
+  return { description }
+}
+
+const BuildURL = (rawText) => {
+  const { subreddit, query, params } = parseRawText(rawText)
+  let url = `https://www.reddit.com/r/${subreddit}/search?q=${query.join('+')}&restrict_sr=on`
   if (params.sort) {
     url += `&sort=${params.sort}`
   }
