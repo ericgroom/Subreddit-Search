@@ -1,0 +1,14 @@
+{
+  "manifest_version": 2,
+  "name": "Subreddit Search",
+  "version": "0.1",
+  "description": "Use omnibar to search subreddits",
+
+  "omnibox": {
+    "keyword": "sub"
+  },
+
+  "background": {
+    "scripts": ["background-script.js"]
+  }
+}
