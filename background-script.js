@@ -6,7 +6,7 @@ browser.omnibox.setDefaultSuggestion({
 })
 
 browser.omnibox.onInputChanged.addListener((input, suggest) => {
-  let suggestion = BuildSuggestion(input)
+  let suggestion = BuildDefaultSuggestion(input)
   browser.omnibox.setDefaultSuggestion(suggestion)
 })
 
@@ -25,20 +25,36 @@ browser.omnibox.onInputEntered.addListener((text, disposition) => {
   }
 })
 
-const parseRawText = (rawText) => {
-  const args = rawText.split(" ")
-  const subreddit = args.shift()
-  const params = args.filter(token => token.includes(':'))
-                   .map(param => param.split(':'))
-                   .reduce((obj, param) => { // reduce to single object
-                      obj[param[0]] = param[1]
-                      return obj
-                    }, {})
-  const queryArray = args.filter(arg => !arg.includes(':'))
-  return { subreddit, queryArray, params }
+const BuildURL = (rawText) => {
+  const { subreddit, queryArray, params } = parseRawText(rawText)
+  const query = queryArray.join('+')
+  let url = "https://www.reddit.com/"
+
+  if (subreddit && !query) {
+    url += `r/${subreddit}/`
+
+    if (params.sort) {
+      url += `${params.sort}/`
+    }
+  }
+
+  if (query) {
+    url = `r/${subreddit}/search?q=${query}&restrict_sr=on`
+
+    if (params.sort) {
+      url += `&sort=${params.sort}`
+    }
+
+    if (params.time) {
+      url += `&t=${params.time}`
+    }
+
+  }
+
+  return url
 }
 
-const BuildSuggestion = (rawText) => {
+const BuildDefaultSuggestion = (rawText) => {
   let description = ""
   const { subreddit, queryArray, params } = parseRawText(rawText)
   const query = queryArray.join(' ')
@@ -62,32 +78,16 @@ const BuildSuggestion = (rawText) => {
   return { description }
 }
 
-const BuildURL = (rawText) => {
-  const { subreddit, queryArray, params } = parseRawText(rawText)
-  const query = queryArray.join('+')
-  let url = ""
-
-  if (subreddit && !query) {
-    url = `https://www.reddit.com/r/${subreddit}/`
-
-    if (params.sort) {
-      url += `${params.sort}/`
-    }
-  }
-
-  if (query) {
-    url = `https://www.reddit.com/r/${subreddit}/search?q=${query}&restrict_sr=on`
-
-    if (params.sort) {
-      url += `&sort=${params.sort}`
-    }
-
-    if (params.time) {
-      url += `&t=${params.time}`
-    }
-
-  }
-
-  return url
+const parseRawText = (rawText) => {
+  const args = rawText.split(" ")
+  const subreddit = args.shift()
+  const params = args.filter(token => token.includes(':'))
+                   .map(param => param.split(':'))
+                   .reduce((obj, param) => { // reduce to single object
+                      obj[param[0]] = param[1]
+                      return obj
+                    }, {})
+  const queryArray = args.filter(arg => !arg.includes(':'))
+  return { subreddit, queryArray, params }
 }
 
