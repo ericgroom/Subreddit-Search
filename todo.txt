@@ -1,0 +1,7 @@
+show multiple suggestions to instruct users on possibilities
+add icons
+look into permissions
+run linter
+testing?
+sort/time type validation
+
