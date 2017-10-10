@@ -34,14 +34,14 @@ const parseRawText = (rawText) => {
                       obj[param[0]] = param[1]
                       return obj
                     }, {})
-  const query = args.filter(arg => !arg.includes(':'))
-  return { subreddit, query, params }
+  const queryArray = args.filter(arg => !arg.includes(':'))
+  return { subreddit, queryArray, params }
 }
 
 const BuildSuggestion = (rawText) => {
   let description = ""
-  let { subreddit, query, params } = parseRawText(rawText)
-  query = query.join(' ')
+  const { subreddit, queryArray, params } = parseRawText(rawText)
+  const query = queryArray.join(' ')
 
   if (subreddit && !query) {
     description += `Go to r/${subreddit}`
@@ -63,14 +63,31 @@ const BuildSuggestion = (rawText) => {
 }
 
 const BuildURL = (rawText) => {
-  const { subreddit, query, params } = parseRawText(rawText)
-  let url = `https://www.reddit.com/r/${subreddit}/search?q=${query.join('+')}&restrict_sr=on`
-  if (params.sort) {
-    url += `&sort=${params.sort}`
+  const { subreddit, queryArray, params } = parseRawText(rawText)
+  const query = queryArray.join('+')
+  let url = ""
+
+  if (subreddit && !query) {
+    url = `https://www.reddit.com/r/${subreddit}/`
+
+    if (params.sort) {
+      url += `${params.sort}/`
+    }
   }
-  if (params.time) {
-    url += `&t=${params.time}`
+
+  if (query) {
+    url = `https://www.reddit.com/r/${subreddit}/search?q=${query}&restrict_sr=on`
+
+    if (params.sort) {
+      url += `&sort=${params.sort}`
+    }
+
+    if (params.time) {
+      url += `&t=${params.time}`
+    }
+
   }
+
   return url
 }
 
