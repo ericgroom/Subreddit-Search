@@ -39,7 +39,7 @@ const BuildURL = (rawText) => {
   }
 
   if (query) {
-    url = `r/${subreddit}/search?q=${query}&restrict_sr=on`
+    url += `r/${subreddit}/search?q=${query}&restrict_sr=on`
 
     if (params.sort) {
       url += `&sort=${params.sort}`
