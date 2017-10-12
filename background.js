@@ -6,12 +6,12 @@ browser.omnibox.setDefaultSuggestion({
 })
 
 browser.omnibox.onInputChanged.addListener((input, suggest) => {
-  let suggestion = BuildDefaultSuggestion(input)
+  let suggestion = buildDescription(input)
   browser.omnibox.setDefaultSuggestion(suggestion)
 })
 
 browser.omnibox.onInputEntered.addListener((text, disposition) => {
-  let url = BuildURL(text)
+  let url = buildURL(text)
   switch (disposition) {
     case "currentTab":
       browser.tabs.update({url});
@@ -25,7 +25,7 @@ browser.omnibox.onInputEntered.addListener((text, disposition) => {
   }
 })
 
-const BuildURL = (rawText) => {
+function buildURL(rawText) {
   const { subreddit, queryArray, params } = parseRawText(rawText)
   const query = queryArray.join('+')
   let url = "https://www.reddit.com/"
@@ -54,7 +54,7 @@ const BuildURL = (rawText) => {
   return url
 }
 
-const BuildDefaultSuggestion = (rawText) => {
+function buildDescription(rawText) {
   let description = ""
   const { subreddit, queryArray, params } = parseRawText(rawText)
   const query = queryArray.join(' ')
@@ -78,7 +78,7 @@ const BuildDefaultSuggestion = (rawText) => {
   return { description }
 }
 
-const parseRawText = (rawText) => {
+function parseRawText(rawText) {
   const args = rawText.split(" ")
   const subreddit = args.shift()
   const params = args.filter(token => token.includes(':'))
