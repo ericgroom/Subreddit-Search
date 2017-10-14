@@ -1,4 +1,5 @@
 const SORT = ["relevance", "new", "top", "comments"]
+const SORT_SUB = ["hot", "new", "rising", "controversial", "top", "gilded", "wiki"]
 const TIME = ["all", "day", "week", "month", "year"]
 
 browser.omnibox.setDefaultSuggestion({
@@ -7,7 +8,8 @@ browser.omnibox.setDefaultSuggestion({
 
 browser.omnibox.onInputChanged.addListener((input, suggest) => {
   let suggestion = buildDescription(input)
-  browser.omnibox.setDefaultSuggestion(suggestion)
+  browser.omnibox.setDefaultSuggestion({ description: suggestion })
+  suggest(buildSuggestions(input))
 })
 
 browser.omnibox.onInputEntered.addListener((text, disposition) => {
@@ -75,7 +77,38 @@ function buildDescription(rawText) {
     description += ` and sort by ${params.sort}`
   }
 
-  return { description }
+  return description
+}
+
+function buildSuggestions(rawText) {
+  let suggestions = []
+  const { subreddit, queryArray, params } = parseRawText(rawText)
+  const query = queryArray.join(' ')
+
+  if (params.sort === undefined && params.time == undefined) {
+    let sortSuggestion = `${rawText} sort:new`
+    let timeSuggestion = `${rawText} time:week`
+    sortSuggestion = {
+      content: sortSuggestion,
+      description: buildDescription(sortSuggestion),
+    }
+    timeSuggestion = {
+      content: timeSuggestion,
+      description: buildDescription(timeSuggestion),
+    }
+    suggestions.push(sortSuggestion)
+    suggestions.push(timeSuggestion)
+  } else if (params.sort !== undefined) {
+    const sortTypes = query ? SORT : SORT_SUB
+    sortTypes.map(type => `${rawText} sort:${type}`)
+        .map(content => ({content, description: buildDescription(content)}))
+        .forEach(suggestion => suggestions.push(suggestion))
+  } else if (params.time !== undefined && query) {
+    TIME.map(type => `${rawText} time:${type}`)
+        .map(content => ({content, description: buildDescription(content)}))
+        .forEach(suggestion => suggestions.push(suggestion))
+  }
+  return suggestions
 }
 
 function parseRawText(rawText) {

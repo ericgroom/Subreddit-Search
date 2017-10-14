@@ -1,4 +1,4 @@
-show multiple suggestions to instruct users on possibilities
+DONE show multiple suggestions to instruct users on possibilities
 add icons
 look into permissions
 run linter
