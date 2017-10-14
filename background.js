@@ -100,11 +100,13 @@ function buildSuggestions(rawText) {
     suggestions.push(timeSuggestion)
   } else if (params.sort !== undefined) {
     const sortTypes = query ? SORT : SORT_SUB
-    sortTypes.map(type => `${rawText} sort:${type}`)
+    sortTypes.filter(type => type.startsWith(params.sort))
+        .map(type => `${rawText} sort:${type}`)
         .map(content => ({content, description: buildDescription(content)}))
         .forEach(suggestion => suggestions.push(suggestion))
   } else if (params.time !== undefined && query) {
-    TIME.map(type => `${rawText} time:${type}`)
+    TIME.filter(type => type.startsWith(params.time))
+        .map(type => `${rawText} time:${type}`)
         .map(content => ({content, description: buildDescription(content)}))
         .forEach(suggestion => suggestions.push(suggestion))
   }
